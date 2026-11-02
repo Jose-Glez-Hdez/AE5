@@ -741,6 +741,36 @@ drwxr-xr-x 2 despliegue despliegue 4096 Nov  2 18:11 assets
 Con `local_umask=022` los ficheros quedan `644` y los directorios `755`, así que
 `lector` puede leerlos, pero no modificarlos.
 
+## 9. FTPS explícito y comprobación con curl
+
+FTPS **explícito**: el cliente conecta al puerto 21 y pide cifrado con `AUTH TLS`.
+
+### lftp con TLS obligatorio
+
+```
+$ docker exec dpl-cliente lftp -u despliegue,$PASS_DESP $IP_DPL_LAB -e "set ftp:ssl-force true; set ssl:verify-certificate no; cd /srv/dpl/web; ls; exit"
+drwxr-xr-x    3 1001     1002         4096 Nov 02 18:11 dist
+-rw-r--r--    1 1001     1002           24 Nov 02 17:24 prueba.txt
+```
+
+### curl: banner y listado
+
+```
+$ docker exec dpl-cliente bash -c "curl -sv --ssl-reqd --insecure ... | grep 220"
+< 220 (vsFTPd 3.0.5)
+$ docker exec dpl-cliente curl -s --ssl-reqd --insecure -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/
+```
+
+### FTP sin cifrar rechazado
+
+```
+docker exec dpl-cliente bash -c "curl -sv -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/ 2>&1 | grep -E '^< 5'"
+< 530 Non-anonymous sessions must use encryption.
+```
+
+- `ftp:ssl-force true` / `--ssl-reqd`: obligan al cliente a usar TLS.
+- `ssl:verify-certificate no` / `--insecure`: necesarios porque el certificado es autofirmado.
+- El FTP en claro se rechaza por `force_local_logins_ssl=YES`.
 
 
 
