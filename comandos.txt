@@ -1,0 +1,4 @@
+touch README.md usuarios.txt permisos.txt comandos.txt comprobaciones.txt vsftpd.conf .gitignore
+git init
+git branch -M main
+git branch -M main\ngit remote add origin https://github.com/Jose-Glez-Hdez/AE5.git
