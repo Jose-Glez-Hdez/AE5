@@ -162,3 +162,45 @@ notAfter=Nov  2 15:20:08 2027 GMT
 ```
 
 La clave privada queda con permisos `600` (solo root).
+
+### Directivas FTP
+
+La configuración se escribe en `vsftpd.conf`, se copia al servidor y se
+asigna a root:
+
+```bash
+docker cp vsftpd.conf dpl-lab:/etc/vsftpd.conf
+docker exec dpl-lab chown root:root /etc/vsftpd.conf
+```
+
+| Directiva | Valor | Por qué |
+|---|---|---|
+| `listen` / `listen_ipv6` | `YES` / `NO` | Servidor independiente escuchando en IPv4 |
+| `anonymous_enable` | `NO` | Nadie entra sin usuario y contraseña |
+| `local_enable` | `YES` | Entran los usuarios del sistema (`despliegue`, `lector`) |
+| `write_enable` | `YES` | Permite subir; quién puede escribir lo deciden los permisos (750) |
+| `local_umask` | `022` | Lo subido queda 644/755: legible por el grupo |
+| `port_enable` / `connect_from_port_20` | `YES` | Modo activo: el servidor abre datos desde el puerto 20 |
+| `pasv_enable` / `pasv_min_port` / `pasv_max_port` | `YES` / `40000` / `40100` | Modo pasivo con rango acotado  |
+
+Configuración activa:
+
+```
+$ docker exec dpl-lab bash -c "grep -v '^#' /etc/vsftpd.conf | grep -v '^$'"
+listen=YES
+listen_ipv6=NO
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+local_umask=022
+pam_service_name=vsftpd
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+secure_chroot_dir=/var/run/vsftpd/empty
+port_enable=YES
+connect_from_port_20=YES
+pasv_enable=YES
+pasv_min_port=40000
+pasv_max_port=40100
+```
