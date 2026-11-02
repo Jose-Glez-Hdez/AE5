@@ -1122,3 +1122,33 @@ $ docker exec dpl-cliente bash -c "curl -sv -u despliegue:$PASS_DESP ftp://$IP_D
   - En las pruebas que deben fallar, limitar los reintentos:
     `set net:max-retries 1; set net:reconnect-interval-base 1`.
 
+### Problema 2 — Contraseña en claro en las salidas de depuración de lftp
+
+- **Síntoma:** al ejecutar lftp con la opción `-d` (depuración), la salida muestra el diálogo
+  completo con el servidor, incluida la línea `---> PASS <contraseña>` en texto plano. Esas
+  salidas se pegaron en `comprobaciones.txt` y en el `README.md` y quedaron guardadas en
+  varios commits.
+- **Causa:** el modo `-d` de lftp registra todas las órdenes que envía al servidor, también
+  `PASS`. Aunque la sesión va cifrada con TLS (la contraseña no viaja en claro por la red),
+  la depuración la muestra en la terminal antes de cifrarla.
+- **Solución:**
+  1. Sustituir la contraseña por `********` en todas las salidas de depuración.
+  2. Como el ZIP de la entrega incluye `.git`, limpiar también **todos los commits
+     anteriores** antes de hacer `push`, con `git filter-repo`:
+
+     ```bash
+     brew install git-filter-repo
+     echo '<contraseña>==>********' > /tmp/reemplazos.txt
+     git filter-repo --replace-text /tmp/reemplazos.txt --force
+     git remote add origin https://github.com/Jose-Glez-Hdez/AE5.git
+     rm /tmp/reemplazos.txt
+     ```
+
+     `filter-repo` reescribe el historial conservando autor, fechas y mensajes de los commits,
+     elimina los objetos antiguos y quita el remoto `origin` por seguridad, por lo que hay que
+     volver a añadirlo.
+  3. Comprobar que no queda ninguna aparición: `git log -p --all | grep -c '<contraseña>'` → `0`.
+- **Prevención:** usar `-d` solo para diagnosticar y no pegar su salida completa. Para
+  demostrar los modos activo y pasivo basta filtrar las líneas relevantes
+  (`... 2>&1 | grep -E -- '---> (PORT|PASV)|<--- (200|227)'`), que no incluyen `PASS`.
+
