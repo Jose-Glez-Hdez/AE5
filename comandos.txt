@@ -73,3 +73,13 @@ docker exec dpl-cliente bash -c "mkdir -p /root/.ssh && chmod 700 /root/.ssh"
 docker exec dpl-cliente ssh-keygen -t ed25519 -N "" -f /root/.ssh/id_ed25519
 docker exec -it dpl-cliente ssh-copy-id despliegue@$IP_DPL_LAB
 docker exec dpl-lab ls -l /home/despliegue/.ssh/authorized_keys
+docker exec dpl-lab sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+docker exec dpl-lab sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+docker exec dpl-lab sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+docker exec dpl-lab sed -i 's/^#\?KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/' /etc/ssh/sshd_config
+docker exec dpl-lab ls /etc/ssh/sshd_config.d/
+docker exec dpl-lab sshd -t
+docker exec dpl-lab pkill sshd
+docker exec -d dpl-lab /usr/sbin/sshd -D
+docker exec dpl-lab grep -E '^PasswordAuthentication|^PermitRootLogin|^PubkeyAuthentication|^KbdInteractiveAuthentication' /etc/ssh/sshd_config
+docker exec dpl-lab bash -c "sshd -T | grep -E '^(passwordauthentication|permitrootlogin|pubkeyauthentication|kbdinteractiveauthentication) '"

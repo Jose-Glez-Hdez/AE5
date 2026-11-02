@@ -840,6 +840,40 @@ What's next:
 $ docker exec dpl-lab ls -l /home/despliegue/.ssh/authorized_keys
 -rw------- 1 despliegue despliegue 98 Nov  2 18:32 /home/despliegue/.ssh/authorized_keys
 ```
+### Endurecimiento de sshd
+
+```bash
+docker exec dpl-lab sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+docker exec dpl-lab sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+docker exec dpl-lab sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+docker exec dpl-lab sed -i 's/^#\?KbdInteractiveAuthentication.*/KbdInteractiveAuthentication no/' /etc/ssh/sshd_config
+docker exec dpl-lab sshd -t
+docker exec dpl-lab pkill sshd
+docker exec -d dpl-lab /usr/sbin/sshd -D
+```
+
+| Directiva | Valor | Por qué |
+|---|---|---|
+| `PasswordAuthentication` | `no` | Elimina los ataques de fuerza bruta contra contraseñas |
+| `KbdInteractiveAuthentication` | `no` | Cierra la otra vía para introducir contraseña |
+| `PubkeyAuthentication` | `yes` | Solo se entra con clave |
+| `PermitRootLogin` | `no` | Nadie entra directamente como administrador |
+
+Configuración efectiva:
+
+```
+$ docker exec dpl-lab grep -E '^PasswordAuthentication|^PermitRootLogin|^PubkeyAuthentication|^KbdInteractiveAuthentication' /etc/ssh/sshd_config
+PermitRootLogin no
+PubkeyAuthentication yes
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+
+$ docker exec dpl-lab bash -c "sshd -T | grep -E '^(passwordauthentication|permitrootlogin|pubkeyauthentication|kbdinteractiveauthentication) '"
+permitrootlogin no
+pubkeyauthentication yes
+passwordauthentication no
+kbdinteractiveauthentication no
+```
 
 
 
