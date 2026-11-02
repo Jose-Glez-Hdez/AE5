@@ -204,3 +204,26 @@ pasv_enable=YES
 pasv_min_port=40000
 pasv_max_port=40100
 ```
+### Directivas FTPS
+
+| Directiva | Valor | Por qué |
+|---|---|---|
+| `ssl_enable` | `YES` | Activa TLS |
+| `rsa_cert_file` / `rsa_private_key_file` | `/etc/ssl/certs/vsftpd.pem`/ `/etc/ssl/private/vsftpd.key` | Certificado y clave del servidor |
+| `force_local_logins_ssl` | `YES` | La contraseña nunca viaja sin cifrar |
+| `force_local_data_ssl` | `YES` | Los ficheros viajan cifrados |
+| `ssl_sslv2` / `ssl_sslv3` | `NO` | Protocolos antiguos e inseguros desactivados |
+| `ssl_ciphers` | `HIGH` | Solo cifrados fuertes |
+| `require_ssl_reuse` | `NO` | Compatibilidad con lftp en el canal de datos |
+
+Resultado:
+
+```
+$ docker exec dpl-lab grep -E 'anonymous_enable|local_enable|write_enable|ssl_enable' /etc/vsftpd.conf
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+ssl_enable=YES
+```
+
+La configuración completa está en `vsftpd.conf`.

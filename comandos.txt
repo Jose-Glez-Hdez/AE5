@@ -36,3 +36,6 @@ docker exec dpl-lab openssl x509 -in /etc/ssl/certs/vsftpd.pem -noout -subject -
 docker cp vsftpd.conf dpl-lab:/etc/vsftpd.conf
 docker exec dpl-lab chown root:root /etc/vsftpd.conf
 docker exec dpl-lab bash -c "grep -v '^#' /etc/vsftpd.conf | grep -v '^$'"
+docker cp vsftpd.conf dpl-lab:/etc/vsftpd.conf
+docker exec dpl-lab chown root:root /etc/vsftpd.conf
+docker exec dpl-lab grep -E 'anonymous_enable|local_enable|write_enable|ssl_enable' /etc/vsftpd.conf
