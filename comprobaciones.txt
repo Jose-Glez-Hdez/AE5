@@ -3,3 +3,238 @@ $ docker exec dpl-lab pgrep -a vsftpd
 
 $ docker exec dpl-lab ss -lntp | grep ':21'
 LISTEN 0      32           0.0.0.0:21         0.0.0.0:*    users:(("vsftpd",pid=4194,fd=3))
+
+$ docker exec dpl-cliente lftp -d -u despliegue,$PASS_DESP $IP_DPL_LAB -e "set ssl:verify-certificate no; cd /srv/dpl/web; put /tmp/prueba.txt; exit"
+---- Resolving host address...
+---- IPv6 is not supported or configured
+---- 1 address found: 172.18.0.2
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+---> FEAT
+<--- 211-Features:
+<---  AUTH TLS
+<---  EPRT
+<---  EPSV
+<---  MDTM
+<---  PASV
+<---  PBSZ
+<---  PROT
+<---  REST STREAM
+<---  SIZE
+<---  TVFS
+<--- 211 End
+---> AUTH TLS
+<--- 234 Proceed with negotiation.
+Loaded 120 CAs
+Loaded 0 CRLs
+---> USER despliegue
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 331 Please specify the password.
+---> PASS ********
+<--- 230 Login successful.
+---> PWD
+<--- 257 "/home/despliegue" is the current directory
+---> PBSZ 0
+<--- 200 PBSZ set to 0.
+---> PROT P
+<--- 200 PROT now Private.
+---- CWD path to be sent is `/srv/dpl/web'
+---> CWD /srv/dpl/web
+<--- 250 Directory successfully changed.
+---> TYPE I
+<--- 200 Switching to Binary mode.
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,64).
+---- Connecting data socket to (172.18.0.2) port 40000
+---- Data connection established
+---> STOR prueba.txt
+<--- 150 Ok to send data.
+Loaded 120 CAs
+Loaded 0 CRLs
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+---- Closing data socket
+<--- 226 Transfer complete.
+---> SITE UTIME 20261102171326 prueba.txt
+<--- 500 Unknown SITE command.
+---> SITE UTIME prueba.txt 20261102171326 20261102171326 20261102171326 UTC
+<--- 500 Unknown SITE command.
+---> QUIT
+<--- 221 Goodbye.
+---- Closing control socket
+
+$ docker exec dpl-lab ls -l /srv/dpl/web
+total 4
+-rw-r--r-- 1 despliegue despliegue 24 Nov  2 17:13 prueba.txt
+
+$ docker exec dpl-cliente lftp -d -u lector,$PASS_LECT $IP_DPL_LAB -e "set ssl:verify-certificate no; cd /srv/dpl/web; get prueba.txt -o /tmp/descargado.txt; exit"
+---- Resolving host address...
+---- IPv6 is not supported or configured
+---- 1 address found: 172.18.0.2
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+---> FEAT
+<--- 211-Features:
+<---  AUTH TLS
+<---  EPRT
+<---  EPSV
+<---  MDTM
+<---  PASV
+<---  PBSZ
+<---  PROT
+<---  REST STREAM
+<---  SIZE
+<---  TVFS
+<--- 211 End
+---> AUTH TLS
+<--- 234 Proceed with negotiation.
+Loaded 120 CAs
+Loaded 0 CRLs
+---> USER lector
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 331 Please specify the password.
+---> PASS ********
+<--- 230 Login successful.
+---> PWD
+<--- 257 "/home/lector" is the current directory
+---> PBSZ 0
+<--- 200 PBSZ set to 0.
+---> PROT P
+<--- 200 PROT now Private.
+---- CWD path to be sent is `/srv/dpl/web'
+---> CWD /srv/dpl/web
+<--- 250 Directory successfully changed.
+---> TYPE I
+<--- 200 Switching to Binary mode.
+---> SIZE prueba.txt
+<--- 213 24
+---> MDTM prueba.txt
+<--- 213 20261102171352
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,67).
+---- Connecting data socket to (172.18.0.2) port 40003
+---- Data connection established
+---> RETR prueba.txt
+<--- 150 Opening BINARY mode data connection for prueba.txt (24 bytes).
+Loaded 120 CAs
+Loaded 0 CRLs
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+---- Got EOF on data connection
+---- Closing data socket
+get: prueba.txt: /tmp/descargado.txt: file already exists and xfer:clobber is unset
+<--- 226 Transfer complete.
+---> QUIT
+<--- 221 Goodbye.
+---- Closing control socket
+$ docker exec dpl-cliente cat /tmp/descargado.txt
+prueba de transferencia
+
+$ docker exec dpl-cliente lftp -d -u lector,$PASS_LECT $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set ssl:verify-certificate no; cd /srv/dpl/web; put /tmp/prueba.txt; exit"
+---- Resolving host address...
+---- IPv6 is not supported or configured
+---- 1 address found: 172.18.0.2
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+---> FEAT
+<--- 211-Features:
+<---  AUTH TLS
+<---  EPRT
+<---  EPSV
+<---  MDTM
+<---  PASV
+<---  PBSZ
+<---  PROT
+<---  REST STREAM
+<---  SIZE
+<---  TVFS
+<--- 211 End
+---> AUTH TLS
+<--- 234 Proceed with negotiation.
+Loaded 120 CAs
+Loaded 0 CRLs
+---> USER lector
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 331 Please specify the password.
+---> PASS ********
+<--- 230 Login successful.
+---> PWD
+<--- 257 "/home/lector" is the current directory
+---> PBSZ 0
+<--- 200 PBSZ set to 0.
+---> PROT P
+<--- 200 PROT now Private.
+---- CWD path to be sent is `/srv/dpl/web'
+---> CWD /srv/dpl/web
+<--- 250 Directory successfully changed.
+---> TYPE I
+<--- 200 Switching to Binary mode.
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,115).
+---- Connecting data socket to (172.18.0.2) port 40051
+---- Data connection established
+---> STOR prueba.txt
+<--- 553 Could not create file.
+put: /tmp/prueba.txt: Access failed: 553 Could not create file. (prueba.txt)
+---- Closing data socket
+---> QUIT
+<--- 221 Goodbye.
+---- Closing control socket
+
+$ docker exec dpl-cliente lftp -d -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; ls; exit"
+---- Resolving host address...
+---- IPv6 is not supported or configured
+---- 1 address found: 172.18.0.2
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+---> FEAT
+<--- 211-Features:
+<---  AUTH TLS
+<---  EPRT
+<---  EPSV
+<---  MDTM
+<---  PASV
+<---  PBSZ
+<---  PROT
+<---  REST STREAM
+<---  SIZE
+<---  TVFS
+<--- 211 End
+---> AUTH TLS
+<--- 234 Proceed with negotiation.
+Loaded 120 CAs
+Loaded 0 CRLs
+---> USER anonymous
+ERROR: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+**** Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+---- Closing control socket
+ls: Fatal error: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+$ docker exec dpl-cliente lftp -d -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set ssl:verify-certificate no; ls; exit"
+---- Resolving host address...
+---- IPv6 is not supported or configured
+---- 1 address found: 172.18.0.2
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+---> FEAT
+<--- 211-Features:
+<---  AUTH TLS
+<---  EPRT
+<---  EPSV
+<---  MDTM
+<---  PASV
+<---  PBSZ
+<---  PROT
+<---  REST STREAM
+<---  SIZE
+<---  TVFS
+<--- 211 End
+---> AUTH TLS
+<--- 234 Proceed with negotiation.
+Loaded 120 CAs
+Loaded 0 CRLs
+---> USER anonymous
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 530 Anonymous sessions may not use encryption.
+---> QUIT
+ls: Login failed: 530 Anonymous sessions may not use encryption.
+gnutls_record_recv: The TLS connection was non-properly terminated. Assuming EOF.
+<--- 221 Goodbye.
+---- Closing control socket
