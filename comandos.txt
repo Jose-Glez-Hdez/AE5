@@ -88,3 +88,43 @@ docker exec dpl-lab ls -l /srv/dpl/web
 docker exec dpl-cliente bash -c "printf 'put /tmp/prueba.txt\nls -l\n' > /tmp/sftp-batch.txt"
 docker exec dpl-cliente sftp -b /tmp/sftp-batch.txt despliegue@$IP_DPL_LAB
 docker exec dpl-cliente ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password despliegue@$IP_DPL_LAB true
+export IP_DPL_LAB=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' dpl-lab)
+# 1. Servicios activos
+docker exec dpl-lab pgrep -a vsftpd
+docker exec dpl-lab ss -lntp | grep ':21'
+docker exec dpl-lab pgrep -a sshd
+docker exec dpl-lab bash -c "dpkg -l vsftpd | tail -1"
+# 2. Configuración y usuarios
+docker exec dpl-lab grep -E 'anonymous_enable|local_enable|write_enable|ssl_enable' /etc/vsftpd.conf
+docker exec dpl-lab grep -E '^PasswordAuthentication|^PermitRootLogin' /etc/ssh/sshd_config
+docker exec dpl-lab grep -E 'despliegue|lector' /etc/passwd
+docker exec dpl-lab groups despliegue lector
+docker exec dpl-lab ls -ld /srv/dpl/web
+docker exec dpl-lab ls -l /srv/dpl/web
+# 3. Transferencias (activo y pasivo)
+docker exec dpl-cliente bash -c "echo 'prueba de transferencia' > /tmp/prueba.txt"
+docker exec dpl-cliente lftp -u despliegue,$PASS_DESP $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ssl:verify-certificate no; cd /srv/dpl/web; put /tmp/prueba.txt; exit"
+docker exec dpl-cliente lftp -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; debug 3; set ftp:passive-mode off; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit"
+docker exec dpl-cliente lftp -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; debug 3; set ftp:passive-mode on; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit"
+docker exec dpl-cliente lftp -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; debug 9; set ftp:passive-mode off; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit" 2>&1 | grep -E -- '---> (PORT|EPRT|PASV|EPSV|LIST|AUTH)|<--- (200|227|229|150|226|234)'
+docker exec dpl-cliente lftp -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; debug 9; set ftp:passive-mode on; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit" 2>&1 | grep -E -- '---> (PORT|EPRT|PASV|EPSV|LIST|AUTH)|<--- (200|227|229|150|226|234)'
+# 4. Permisos: lector descarga sí, escribe no; anónimo no
+docker exec dpl-cliente rm -f /tmp/descargado.txt
+docker exec dpl-cliente lftp -u lector,$PASS_LECT $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ssl:verify-certificate no; cd /srv/dpl/web; get prueba.txt -o /tmp/descargado.txt; exit"
+docker exec dpl-cliente cat /tmp/descargado.txt
+docker exec dpl-cliente lftp -u lector,$PASS_LECT $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ssl:verify-certificate no; cd /srv/dpl/web; put /tmp/prueba.txt; exit"
+docker exec dpl-cliente lftp -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; ls; exit"
+docker exec dpl-cliente lftp -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ssl:verify-certificate no; ls; exit"
+docker exec dpl-cliente lftp -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ftp:ssl-allow no; debug 9; ls; exit"
+# 5. Transferencia cifrada: FTPS explícito y SFTP con clave
+docker exec dpl-cliente lftp -u despliegue,$PASS_DESP $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ftp:ssl-force true; set ssl:verify-certificate no; cd /srv/dpl/web; ls; exit"
+docker exec dpl-cliente bash -c "printf 'put /tmp/prueba.txt\nls -l\n' > /tmp/sftp-batch.txt"
+docker exec dpl-cliente sftp -o BatchMode=yes -b /tmp/sftp-batch.txt despliegue@$IP_DPL_LAB
+docker exec dpl-cliente scp -o BatchMode=yes /tmp/prueba.txt despliegue@$IP_DPL_LAB:/srv/dpl/web/prueba-scp.txt
+docker exec dpl-cliente ssh -o BatchMode=yes -o PubkeyAuthentication=no -o PreferredAuthentications=password despliegue@$IP_DPL_LAB true
+docker exec dpl-lab bash -c "sshd -T | grep -E '^(passwordauthentication|permitrootlogin|pubkeyauthentication|kbdinteractiveauthentication) '"
+# 6. Comprobación rápida con curl
+docker exec dpl-cliente bash -c "curl -sv --ssl-reqd --insecure -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/ 2>&1 | grep 220"
+docker exec dpl-cliente curl -s --ssl-reqd --insecure -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/
+docker exec dpl-cliente bash -c "curl -sv -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/ 2>&1 | grep -E '^< (5|2)'"
+docker exec dpl-cliente pgrep -a lftp

@@ -456,3 +456,189 @@ sftp> ls -l
 docker exec dpl-cliente ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password despliegue@$IP_DPL_LAB true
 
 despliegue@172.18.0.2: Permission denied (publickey).
+
+#  BATERÍA FINAL 
+===== 1. Servicios activos (sin systemd: proceso + puerto + versión) =====
+$ docker exec dpl-lab pgrep -a vsftpd
+4194 /usr/sbin/vsftpd /etc/vsftpd.conf
+
+$ docker exec dpl-lab ss -lntp | grep ':21'
+LISTEN 0      32           0.0.0.0:21         0.0.0.0:*    users:(("vsftpd",pid=4194,fd=3))
+
+$ docker exec dpl-lab pgrep -a sshd
+4501 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+
+$ docker exec dpl-lab bash -c "dpkg -l vsftpd | tail -1"
+ii  vsftpd         3.0.5-0ubuntu3.1 arm64        lightweight, efficient FTP server written for security
+
+===== 2. Configuración y usuarios =====
+$ docker exec dpl-lab grep -E 'anonymous_enable|local_enable|write_enable|ssl_enable' /etc/vsftpd.conf
+anonymous_enable=NO
+local_enable=YES
+write_enable=YES
+ssl_enable=YES
+
+$ docker exec dpl-lab grep -E '^PasswordAuthentication|^PermitRootLogin' /etc/ssh/sshd_config
+PermitRootLogin no
+PasswordAuthentication no
+
+$ docker exec dpl-lab grep -E 'despliegue|lector' /etc/passwd
+despliegue:x:1001:1002::/home/despliegue:/bin/bash
+lector:x:1002:1003::/home/lector:/bin/bash
+
+$ docker exec dpl-lab groups despliegue lector
+despliegue : despliegue operaciones
+lector : lector operaciones
+
+$ docker exec dpl-lab ls -ld /srv/dpl/web
+drwxr-x--- 3 despliegue operaciones 4096 Nov  2 18:45 /srv/dpl/web
+
+$ docker exec dpl-lab ls -l /srv/dpl/web
+total 12
+drwxr-xr-x 3 despliegue despliegue 4096 Nov  2 18:11 dist
+-rw-r--r-- 1 despliegue despliegue   24 Nov  2 18:45 prueba-scp.txt
+-rw-r--r-- 1 despliegue despliegue   24 Nov  2 18:50 prueba.txt
+
+===== 3.1 Subida con despliegue (OK) =====
+$ docker exec dpl-cliente bash -c "echo 'prueba de transferencia' > /tmp/prueba.txt"
+
+$ docker exec dpl-cliente lftp -u despliegue,$PASS_DESP $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ssl:verify-certificate no; cd /srv/dpl/web; put /tmp/prueba.txt; exit"
+(sin salida: subida correcta, código de salida 0; prueba.txt aparece con hora 18:55 en los listados siguientes)
+
+===== 3.2 Modo ACTIVO =====
+$ docker exec dpl-cliente lftp -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; debug 3; set ftp:passive-mode off; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit"
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 230 Login successful.
+<--- 250 Directory successfully changed.
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+drwxr-xr-x    3 1001     1002         4096 Nov 02 18:11 dist
+-rw-r--r--    1 1001     1002           24 Nov 02 18:54 prueba-scp.txt
+-rw-r--r--    1 1001     1002           24 Nov 02 18:55 prueba.txt
+
+$ docker exec dpl-cliente lftp -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; debug 9; set ftp:passive-mode off; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit" 2>&1 | grep -E -- '---> (PORT|EPRT|PASV|EPSV|LIST|AUTH)|<--- (200|227|229|150|226|234)'
+---> AUTH TLS
+<--- 234 Proceed with negotiation.
+<--- 200 PBSZ set to 0.
+<--- 200 PROT now Private.
+---> PORT 172,18,0,3,177,53
+<--- 200 PORT command successful. Consider using PASV.
+---> LIST
+<--- 150 Here comes the directory listing.
+<--- 226 Directory send OK.
+
+===== 3.3 Modo PASIVO =====
+$ docker exec dpl-cliente lftp -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; debug 3; set ftp:passive-mode on; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit"
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 230 Login successful.
+<--- 250 Directory successfully changed.
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+drwxr-xr-x    3 1001     1002         4096 Nov 02 18:11 dist
+-rw-r--r--    1 1001     1002           24 Nov 02 18:54 prueba-scp.txt
+-rw-r--r--    1 1001     1002           24 Nov 02 18:55 prueba.txt
+
+$ docker exec dpl-cliente lftp -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; debug 9; set ftp:passive-mode on; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit" 2>&1 | grep -E -- '---> (PORT|EPRT|PASV|EPSV|LIST|AUTH)|<--- (200|227|229|150|226|234)'
+---> AUTH TLS
+<--- 234 Proceed with negotiation.
+<--- 200 PBSZ set to 0.
+<--- 200 PROT now Private.
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,140).
+---> LIST
+<--- 150 Here comes the directory listing.
+<--- 226 Directory send OK.
+
+===== 4.1 Descarga con lector (OK) =====
+$ docker exec dpl-cliente rm -f /tmp/descargado.txt
+
+$ docker exec dpl-cliente lftp -u lector,$PASS_LECT $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ssl:verify-certificate no; cd /srv/dpl/web; get prueba.txt -o /tmp/descargado.txt; exit"
+(sin salida: descarga correcta, código de salida 0)
+
+$ docker exec dpl-cliente cat /tmp/descargado.txt
+prueba de transferencia
+
+===== 4.2 Subida con lector (DENEGADA) =====
+$ docker exec dpl-cliente lftp -u lector,$PASS_LECT $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ssl:verify-certificate no; cd /srv/dpl/web; put /tmp/prueba.txt; exit"
+put: /tmp/prueba.txt: Access failed: 553 Could not create file. (prueba.txt)
+
+===== 4.3 Acceso anónimo (DENEGADO) =====
+$ docker exec dpl-cliente lftp -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; ls; exit"
+ls: Fatal error: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+
+$ docker exec dpl-cliente lftp -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ssl:verify-certificate no; ls; exit"
+ls: Login failed: 530 Anonymous sessions may not use encryption.
+
+$ docker exec dpl-cliente lftp -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ftp:ssl-allow no; debug 9; ls; exit"
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+---> FEAT
+<--- 211-Features:
+<---  AUTH TLS
+<---  EPRT
+<---  EPSV
+<---  MDTM
+<---  PASV
+<---  PBSZ
+<---  PROT
+<---  REST STREAM
+<---  SIZE
+<---  TVFS
+<--- 211 End
+---> USER anonymous
+<--- 331 Please specify the password.
+---> PASS 
+<--- 530 Login incorrect.
+---> PWD
+ls: Login failed: 530 Login incorrect.
+<--- 530 Please login with USER and PASS.
+---> QUIT
+<--- 221 Goodbye.
+---- Closing control socket
+
+===== 5.1 FTPS explícito forzado (OK) =====
+$ docker exec dpl-cliente lftp -u despliegue,$PASS_DESP $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set net:timeout 10; set ftp:ssl-force true; set ssl:verify-certificate no; cd /srv/dpl/web; ls; exit"
+drwxr-xr-x    3 1001     1002         4096 Nov 02 18:11 dist
+-rw-r--r--    1 1001     1002           24 Nov 02 18:54 prueba-scp.txt
+-rw-r--r--    1 1001     1002           24 Nov 02 18:55 prueba.txt
+
+===== 5.2 SFTP con clave (OK, sin contraseña) =====
+$ docker exec dpl-cliente bash -c "printf 'put /tmp/prueba.txt\nls -l\n' > /tmp/sftp-batch.txt"
+
+$ docker exec dpl-cliente sftp -o BatchMode=yes -b /tmp/sftp-batch.txt despliegue@$IP_DPL_LAB
+sftp> put /tmp/prueba.txt
+sftp> ls -l
+-rw-r--r--    ? despliegue despliegue       24 Nov  2 18:54 prueba.txt
+
+===== 5.3 SCP con clave (OK, sin contraseña) =====
+$ docker exec dpl-cliente scp -o BatchMode=yes /tmp/prueba.txt despliegue@$IP_DPL_LAB:/srv/dpl/web/prueba-scp.txt
+(sin salida: copia correcta, código de salida 0; prueba-scp.txt aparece con hora 18:54 en los listados)
+
+===== 5.4 SSH solo con contraseña (DENEGADO) =====
+$ docker exec dpl-cliente ssh -o BatchMode=yes -o PubkeyAuthentication=no -o PreferredAuthentications=password despliegue@$IP_DPL_LAB true
+despliegue@172.18.0.2: Permission denied (publickey).
+
+$ docker exec dpl-lab bash -c "sshd -T | grep -E '^(passwordauthentication|permitrootlogin|pubkeyauthentication|kbdinteractiveauthentication) '"
+permitrootlogin no
+pubkeyauthentication yes
+passwordauthentication no
+kbdinteractiveauthentication no
+
+===== 6.1 curl: banner (FTPS explícito) =====
+$ docker exec dpl-cliente bash -c "curl -sv --ssl-reqd --insecure -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/ 2>&1 | grep 220"
+< 220 (vsFTPd 3.0.5)
+
+===== 6.2 curl: listado (FTPS explícito) =====
+$ docker exec dpl-cliente curl -s --ssl-reqd --insecure -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/
+-rw-r--r--    1 1001     1002           24 Nov 02 18:54 prueba.txt
+
+===== 6.3 curl sin TLS (DENEGADO) =====
+$ docker exec dpl-cliente bash -c "curl -sv -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/ 2>&1 | grep -E '^< (5|2)'"
+< 220 (vsFTPd 3.0.5)
+< 530 Non-anonymous sessions must use encryption.
+
+===== Comprobación final: ningún lftp colgado =====
+$ docker exec dpl-cliente pgrep -a lftp
+(sin salida: no queda ningún proceso lftp)
