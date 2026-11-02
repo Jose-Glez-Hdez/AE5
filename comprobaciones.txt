@@ -410,3 +410,7 @@ drwxr-xr-x 2 despliegue despliegue 4096 Nov  2 18:11 assets
 /srv/dpl/web/dist/assets:
 total 4
 -rw-r--r-- 1 despliegue despliegue 2535 Nov  2 18:11 dpl-app.js
+
+$ docker exec dpl-lab ss -lntp | grep ':22'
+LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=4408,fd=3))  
+LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=4408,fd=4))  

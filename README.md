@@ -772,6 +772,29 @@ docker exec dpl-cliente bash -c "curl -sv -u despliegue:$PASS_DESP ftp://$IP_DPL
 - `ssl:verify-certificate no` / `--insecure`: necesarios porque el certificado es autofirmado.
 - El FTP en claro se rechaza por `force_local_logins_ssl=YES`.
 
+## 10. SSH/SFTP con clave pública
+
+### Arranque de sshd
+
+`/run/sshd` es necesario para la separación de privilegios de sshd y no existe en el
+contenedor; `ssh-keygen -A` genera las claves de host que falten.
+
+```bash
+docker exec dpl-lab mkdir -p /run/sshd
+docker exec dpl-lab ssh-keygen -A
+docker exec -d dpl-lab /usr/sbin/sshd -D
+```
+
+```
+$ docker exec dpl-lab pgrep -a sshd
+4408 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+
+$ docker exec dpl-lab ss -lntp | grep ':22'
+LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=4408,fd=3))  
+LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=4408,fd=4))  
+```
+
+
 
 
 

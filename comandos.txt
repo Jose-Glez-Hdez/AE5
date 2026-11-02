@@ -64,3 +64,8 @@ docker exec dpl-cliente lftp -u despliegue,$PASS_DESP $IP_DPL_LAB -e "set ftp:ss
 docker exec dpl-cliente bash -c "curl -sv --ssl-reqd --insecure -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/ 2>&1 | grep 220"
 docker exec dpl-cliente curl -s --ssl-reqd --insecure -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/
 docker exec dpl-cliente bash -c "curl -sv -u despliegue:$PASS_DESP ftp://$IP_DPL_LAB/ 2>&1 | grep -E '^< 5'"
+docker exec dpl-lab mkdir -p /run/sshd
+docker exec dpl-lab ssh-keygen -A
+docker exec -d dpl-lab /usr/sbin/sshd -D
+docker exec dpl-lab pgrep -a sshd
+docker exec dpl-lab ss -lntp | grep ':22'
