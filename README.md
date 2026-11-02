@@ -116,3 +116,23 @@ $ docker exec dpl-lab groups despliegue lector
 despliegue : despliegue operaciones
 lector : lector operaciones
 ```
+### Directorio de despliegue
+
+```bash
+docker exec dpl-lab mkdir -p /srv/dpl/web
+docker exec dpl-lab chown despliegue:operaciones /srv/dpl/web
+docker exec dpl-lab chmod 750 /srv/dpl/web
+```
+
+Resultado:
+| Quién | Permiso | Efecto |
+|---|---|---|
+| `despliegue` (propietario) | `rwx` (7) | Lista, entra y **escribe** |
+| `operaciones` (grupo, incluye a `lector`) | `r-x` (5) | Lista y entra, **no escribe** |
+| Resto de usuarios | `---` (0) | Sin acceso |
+
+```
+$ docker exec dpl-lab ls -ld /srv/dpl/web
+drwxr-x--- 2 despliegue operaciones 4096 Nov  2 15:15 /srv/dpl/web
+```
+

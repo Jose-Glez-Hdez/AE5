@@ -25,3 +25,8 @@ docker exec dpl-lab bash -c "echo 'despliegue:$PASS_DESP' | chpasswd"
 docker exec dpl-lab bash -c "echo 'lector:$PASS_LECT' | chpasswd"
 docker exec dpl-lab grep -E 'despliegue|lector' /etc/passwd
 docker exec dpl-lab groups despliegue lector
+docker exec dpl-lab mkdir -p /srv/dpl/web
+docker exec dpl-lab chown despliegue:operaciones /srv/dpl/web
+docker exec dpl-lab chmod 750 /srv/dpl/web
+docker exec dpl-lab ls -ld /srv/dpl/web
+docker exec dpl-lab ls -l /srv/dpl/web

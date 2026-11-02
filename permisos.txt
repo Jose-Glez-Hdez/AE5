@@ -1,0 +1,5 @@
+$ docker exec dpl-lab ls -ld /srv/dpl/web
+drwxr-x--- 2 despliegue operaciones 4096 Nov  2 15:15 /srv/dpl/web
+
+$ docker exec dpl-lab ls -l /srv/dpl/web
+total 0
