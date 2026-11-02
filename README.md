@@ -227,3 +227,25 @@ ssl_enable=YES
 ```
 
 La configuración completa está en `vsftpd.conf`.
+
+## 5. Arranque de vsftpd sin systemd
+
+En el contenedor no existe systemd, así que no se usa `systemctl`. vsftpd se lanza en
+primer plano en segundo término de Docker (`docker exec -d`).
+
+```bash
+docker exec dpl-lab mkdir -p /var/run/vsftpd/empty
+docker exec -d dpl-lab /usr/sbin/vsftpd /etc/vsftpd.conf
+```
+
+Comprobación por proceso y puerto:
+
+```
+$ docker exec dpl-lab pgrep -a vsftpd
+4194 /usr/sbin/vsftpd /etc/vsftpd.conf
+
+$ docker exec dpl-lab ss -lntp | grep ':21'
+LISTEN 0      32           0.0.0.0:21         0.0.0.0:*    users:(("vsftpd",pid=4194,fd=3))
+```
+
+

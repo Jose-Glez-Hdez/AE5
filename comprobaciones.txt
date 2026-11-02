@@ -1,0 +1,5 @@
+$ docker exec dpl-lab pgrep -a vsftpd
+4194 /usr/sbin/vsftpd /etc/vsftpd.conf
+
+$ docker exec dpl-lab ss -lntp | grep ':21'
+LISTEN 0      32           0.0.0.0:21         0.0.0.0:*    users:(("vsftpd",pid=4194,fd=3))

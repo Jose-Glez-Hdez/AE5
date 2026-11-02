@@ -39,3 +39,6 @@ docker exec dpl-lab bash -c "grep -v '^#' /etc/vsftpd.conf | grep -v '^$'"
 docker cp vsftpd.conf dpl-lab:/etc/vsftpd.conf
 docker exec dpl-lab chown root:root /etc/vsftpd.conf
 docker exec dpl-lab grep -E 'anonymous_enable|local_enable|write_enable|ssl_enable' /etc/vsftpd.conf
+docker exec -d dpl-lab /usr/sbin/vsftpd /etc/vsftpd.conf
+docker exec dpl-lab pgrep -a vsftpd
+docker exec dpl-lab ss -lntp | grep ':21'
