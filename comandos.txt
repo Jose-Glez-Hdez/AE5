@@ -30,3 +30,6 @@ docker exec dpl-lab chown despliegue:operaciones /srv/dpl/web
 docker exec dpl-lab chmod 750 /srv/dpl/web
 docker exec dpl-lab ls -ld /srv/dpl/web
 docker exec dpl-lab ls -l /srv/dpl/web
+docker exec dpl-lab openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/vsftpd.key -out /etc/ssl/certs/vsftpd.pem -subj "/CN=dpl-lab"
+docker exec dpl-lab ls -l /etc/ssl/certs/vsftpd.pem /etc/ssl/private/vsftpd.key
+docker exec dpl-lab openssl x509 -in /etc/ssl/certs/vsftpd.pem -noout -subject -dates

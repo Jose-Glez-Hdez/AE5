@@ -136,3 +136,29 @@ $ docker exec dpl-lab ls -ld /srv/dpl/web
 drwxr-x--- 2 despliegue operaciones 4096 Nov  2 15:15 /srv/dpl/web
 ```
 
+## 4. Configuración de vsftpd
+
+### Certificado TLS
+
+Para FTPS vsftpd necesita un certificado y su clave privada. Se genera un certificado **autofirmado** válido un año; por eso los clientes usan
+`ssl:verify-certificate no` y `--insecure`.
+
+```bash
+docker exec dpl-lab openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout /etc/ssl/private/vsftpd.key -out /etc/ssl/certs/vsftpd.pem -subj "/CN=dpl-lab"
+```
+
+Resultado:
+
+```
+$ docker exec dpl-lab ls -l /etc/ssl/certs/vsftpd.pem /etc/ssl/private/vsftpd.key
+-rw-r--r-- 1 root root 1107 Nov  2 15:20 /etc/ssl/certs/vsftpd.pem
+-rw------- 1 root root 1704 Nov  2 15:20 /etc/ssl/private/vsftpd.key
+
+$ docker exec dpl-lab openssl x509 -in /etc/ssl/certs/vsftpd.pem -noout -subject -dates
+subject=CN = dpl-lab
+notBefore=Nov  2 15:20:08 2026 GMT
+notAfter=Nov  2 15:20:08 2027 GMT
+```
+
+La clave privada queda con permisos `600` (solo root).
