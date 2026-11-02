@@ -9,8 +9,8 @@ docker run -dit --name dpl-cliente --hostname dpl-cliente --network dpl-net ubun
 docker ps --filter name=dpl- --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
 docker network inspect dpl-net --format '{{range .Containers}}{{.Name}} -> {{.IPv4Address}}{{"\n"}}{{end}}'
 docker exec dpl-lab bash -c "grep -E '^(NAME|VERSION)=' /etc/os-release"
-export PASS_DESP='CONTRASEÑA'
-export PASS_LECT='CONSTRASEÑA'
+export PASS_DESP='CONTRASEÑA' # NO ES LA CONTRASEÑA QUE SE USÓ
+export PASS_LECT='CONSTRASEÑA' # NO ES LA CONTRASEÑA QUE SE USÓ
 docker exec dpl-lab bash -c "apt-get update && apt-get install -y vsftpd openssh-server openssl iproute2 procps"
 docker exec dpl-cliente bash -c "apt-get update && apt-get install -y lftp ftp openssh-client curl"
 docker exec dpl-lab bash -c "dpkg -l vsftpd | tail -1"
@@ -69,3 +69,7 @@ docker exec dpl-lab ssh-keygen -A
 docker exec -d dpl-lab /usr/sbin/sshd -D
 docker exec dpl-lab pgrep -a sshd
 docker exec dpl-lab ss -lntp | grep ':22'
+docker exec dpl-cliente bash -c "mkdir -p /root/.ssh && chmod 700 /root/.ssh"
+docker exec dpl-cliente ssh-keygen -t ed25519 -N "" -f /root/.ssh/id_ed25519
+docker exec -it dpl-cliente ssh-copy-id despliegue@$IP_DPL_LAB
+docker exec dpl-lab ls -l /home/despliegue/.ssh/authorized_keys

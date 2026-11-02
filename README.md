@@ -794,6 +794,52 @@ LISTEN 0      128          0.0.0.0:22         0.0.0.0:*    users:(("sshd",pid=44
 LISTEN 0      128             [::]:22            [::]:*    users:(("sshd",pid=4408,fd=4))  
 ```
 
+### Clave pública ed25519
+
+Se genera un par de claves **ed25519** en elcliente y se instala la pública en `despliegue` 
+con `ssh-copy-id`. Es la única vez que se usa la contraseña por SSH. La clave no lleva frase 
+de paso para poder automatizar despliegues; en producción se protegería con frase de paso y `ssh-agent`.
+
+```
+$ docker exec dpl-cliente ssh-keygen -t ed25519 -N "" -f /root/.ssh/id_ed25519
+docker exec dpl-cliente ssh-keygen -t ed25519 -N "" -f /root/.ssh/id_ed25519
+Generating public/private ed25519 key pair.
+Your identification has been saved in /root/.ssh/id_ed25519
+Your public key has been saved in /root/.ssh/id_ed25519.pub
+The key fingerprint is:
+SHA256:sD62eTp5HO/eM9FR+lLC26RD9CkV9s93YmcQeBSVmbk root@dpl-cliente
+The key's randomart image is:
++--[ED25519 256]--+
+|             o+=B|
+|            . +Bo|
+|      .      +o++|
+|       o     .*E=|
+|      . S    o+XB|
+|     .  .   ..*+=|
+|      +o o   . o |
+|     .o++ ..o    |
+|      += oo .o   |
++----[SHA256]-----+
+
+$ docker exec -it dpl-cliente ssh-copy-id despliegue@$IP_DPL_LAB
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/root/.ssh/id_ed25519.pub"
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+despliegue@172.18.0.2's password: 
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'despliegue@172.18.0.2'"
+and check to make sure that only the key(s) you wanted were added.
+
+
+What's next:
+    Try Docker Debug for seamless, persistent debugging tools in any container or image → docker debug dpl-cliente
+    Learn more at https://docs.docker.com/go/debug-cli/
+
+$ docker exec dpl-lab ls -l /home/despliegue/.ssh/authorized_keys
+-rw------- 1 despliegue despliegue 98 Nov  2 18:32 /home/despliegue/.ssh/authorized_keys
+```
 
 
 
