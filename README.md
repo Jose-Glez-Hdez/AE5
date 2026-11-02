@@ -44,3 +44,42 @@ $ docker exec dpl-lab bash -c "grep -E '^(NAME|VERSION)=' /etc/os-release"
 NAME="Ubuntu"
 VERSION="24.04.5 LTS (Noble Numbat)"
 ```
+
+## 2. Instalación
+
+Los paquetes se instalan con `apt-get` **dentro** de cada contenedor.
+
+```bash
+docker exec dpl-lab bash -c "apt-get update && apt-get install -y vsftpd openssh-server openssl iproute2 procps"
+docker exec dpl-cliente bash -c "apt-get update && apt-get install -y lftp ftp openssh-client curl"
+```
+
+| Paquete | Contenedor | Para qué |
+|---|---|---|
+| `vsftpd` | dpl-lab | Servidor FTP/FTPS |
+| `openssh-server` | dpl-lab | Servidor SSH/SFTP |
+| `openssl` | dpl-lab | Generar el certificado TLS |
+| `iproute2` | dpl-lab | Comando `ss` (puertos en escucha) |
+| `procps` | dpl-lab | Comando `pgrep` (procesos) |
+| `lftp`, `ftp` | dpl-cliente | Clientes FTP de línea de comandos |
+| `curl` | dpl-cliente | Comprobación rápida de FTPS |
+| `openssh-client` | dpl-cliente | `ssh`, `scp`, `sftp`, `ssh-keygen`, `ssh-copy-id` |
+
+### Versiones instaladas
+
+```
+$ docker exec dpl-lab bash -c "dpkg -l vsftpd | tail -1"
+ii  vsftpd         3.0.5-0ubuntu3.1 arm64        lightweight, efficient FTP server written for security
+
+$ docker exec dpl-lab bash -c "dpkg -l openssh-server | tail -1"
+ii  openssh-server 1:9.6p1-3ubuntu13.20 arm64        secure shell (SSH) server, for secure access from remote machines
+
+$ docker exec dpl-cliente bash -c "lftp --version | head -1"
+LFTP | Version 4.9.2 | Copyright (c) 1996-2020 Alexander V. Lukyanov
+
+$ docker exec dpl-cliente bash -c "curl --version | head -1"
+curl 8.5.0 (aarch64-unknown-linux-gnu) libcurl/8.5.0 OpenSSL/3.0.13 zlib/1.3 brotli/1.1.0 zstd/1.5.5 libidn2/2.3.7 libpsl/0.21.2 (+libidn2/2.3.7) libssh/0.10.6/openssl/zlib nghttp2/1.59.0 librtmp/2.3 OpenLDAP/2.6.10
+
+$ docker exec dpl-cliente ssh -V
+OpenSSH_9.6p1 Ubuntu-3ubuntu13.20, OpenSSL 3.0.13 30 Jan 2024
+```

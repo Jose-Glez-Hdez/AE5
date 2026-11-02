@@ -11,3 +11,10 @@ docker network inspect dpl-net --format '{{range .Containers}}{{.Name}} -> {{.IP
 docker exec dpl-lab bash -c "grep -E '^(NAME|VERSION)=' /etc/os-release"
 export PASS_DESP='CONTRASEÑA'
 export PASS_LECT='CONSTRASEÑA'
+docker exec dpl-lab bash -c "apt-get update && apt-get install -y vsftpd openssh-server openssl iproute2 procps"
+docker exec dpl-cliente bash -c "apt-get update && apt-get install -y lftp ftp openssh-client curl"
+docker exec dpl-lab bash -c "dpkg -l vsftpd | tail -1"
+docker exec dpl-lab bash -c "dpkg -l openssh-server | tail -1"
+docker exec dpl-cliente bash -c "lftp --version | head -1"
+docker exec dpl-cliente bash -c "curl --version | head -1"
+docker exec dpl-cliente ssh -V
