@@ -1121,3 +1121,4 @@ $ docker exec dpl-cliente bash -c "curl -sv -u despliegue:$PASS_DESP ftp://$IP_D
   - Detener los procesos colgados: `docker exec dpl-cliente pkill lftp`.
   - En las pruebas que deben fallar, limitar los reintentos:
     `set net:max-retries 1; set net:reconnect-interval-base 1`.
+
