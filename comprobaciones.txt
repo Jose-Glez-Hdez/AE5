@@ -238,3 +238,20 @@ ls: Login failed: 530 Anonymous sessions may not use encryption.
 gnutls_record_recv: The TLS connection was non-properly terminated. Assuming EOF.
 <--- 221 Goodbye.
 ---- Closing control socket
+
+$ docker exec dpl-cliente lftp -d -e "debug 3; set ftp:passive-mode off; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit"
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 230 Login successful.
+<--- 250 Directory successfully changed.
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+-rw-r--r--    1 1001     1002           24 Nov 02 17:24 prueba.txt
+$ docker exec dpl-cliente lftp -d -e "debug 3; set ftp:passive-mode on; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit"
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 230 Login successful.
+<--- 250 Directory successfully changed.
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+-rw-r--r--    1 1001     1002           24 Nov 02 17:24 prueba.txt

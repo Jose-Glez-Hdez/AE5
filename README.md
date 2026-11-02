@@ -532,6 +532,41 @@ para que lftp muestre el error y termine, en lugar de reintentar indefinidamente
 
 **Conclusión:** los permisos 750 y la desactivación del anónimo funcionan como se esperaba.
 
+## 7. Modo activo y modo pasivo
+
+### Activo
+
+```
+$ docker exec dpl-cliente lftp -d -e "debug 3; set ftp:passive-mode off; ..."
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 230 Login successful.
+<--- 250 Directory successfully changed.
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+-rw-r--r--    1 1001     1002           24 Nov 02 17:24 prueba.txt
+```
+
+### Pasivo
+
+```
+$ docker exec dpl-cliente lftp -d -e "debug 3; set ftp:passive-mode on; ..."
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 230 Login successful.
+<--- 250 Directory successfully changed.
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+-rw-r--r--    1 1001     1002           24 Nov 02 17:24 prueba.txt
+```
+
+### Quién abre el canal de datos
+
+| Modo | Orden del cliente | Quién abre la conexión de datos | Puertos |
+|---|---|---|---|
+| Activo | `PORT` / `EPRT` (indica IP y puerto del cliente) | El **servidor**, hacia el cliente | origen 20 del servidor → puerto del cliente |
+| Pasivo | `PASV` / `EPSV` (el servidor responde un puerto) | El **cliente**, hacia el servidor | cliente → 40000-40100 del servidor |
+
 
 
 
