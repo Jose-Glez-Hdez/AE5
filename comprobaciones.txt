@@ -255,3 +255,158 @@ WARNING: Certificate verification: The certificate is NOT trusted. The certifica
 <--- 250 Directory successfully changed.
 WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
 -rw-r--r--    1 1001     1002           24 Nov 02 17:24 prueba.txt
+
+$ docker exec dpl-cliente lftp -u despliegue,$PASS_DESP $IP_DPL_LAB -d -e "set ssl:verify-certificate no; mirror -R --verbose /tmp/dist /srv/dpl/web/dist; exit"
+---- Resolving host address...
+---- IPv6 is not supported or configured
+---- 1 address found: 172.18.0.2
+---- Connecting to 172.18.0.2 (172.18.0.2) port 21
+<--- 220 (vsFTPd 3.0.5)
+---> FEAT
+<--- 211-Features:
+<---  AUTH TLS
+<---  EPRT
+<---  EPSV
+<---  MDTM
+<---  PASV
+<---  PBSZ
+<---  PROT
+<---  REST STREAM
+<---  SIZE
+<---  TVFS
+<--- 211 End
+---> AUTH TLS
+<--- 234 Proceed with negotiation.
+Loaded 120 CAs
+Loaded 0 CRLs
+---> USER despliegue
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+<--- 331 Please specify the password.
+---> PASS ********
+<--- 230 Login successful.
+---> PWD
+<--- 257 "/home/despliegue" is the current directory
+---> PBSZ 0
+<--- 200 PBSZ set to 0.
+---> PROT P
+<--- 200 PROT now Private.
+---> MKD /srv
+<--- 550 Create directory operation failed.
+---> MKD /srv/dpl
+<--- 550 Create directory operation failed.
+---> MKD /srv/dpl/web
+<--- 550 Create directory operation failed.
+---> MKD /srv/dpl/web/dist
+<--- 257 "/srv/dpl/web/dist" created
+---- CWD path to be sent is `/srv/dpl/web/dist'
+---> CWD /srv/dpl/web/dist
+<--- 250 Directory successfully changed.
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,77).
+---- Connecting data socket to (172.18.0.2) port 40013
+---- Data connection established
+---> LIST
+<--- 150 Here comes the directory listing.
+Loaded 120 CAs
+Loaded 0 CRLs
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+---- Got EOF on data connection
+---- Closing data socket
+<--- 226 Directory send OK.
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,119).
+---- Connecting data socket to (172.18.0.2) port 40055
+---- Data connection established
+---> NLST
+<--- 150 Here comes the directory listing.
+Loaded 120 CAs
+Loaded 0 CRLs
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+---- Got EOF on data connection
+---- Closing data socket
+<--- 226 Directory send OK.
+---> TYPE I
+<--- 200 Switching to Binary mode.
+Transferring file `index.html'
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,145).
+---- Connecting data socket to (172.18.0.2) port 40081
+---- Data connection established
+---> STOR index.html
+<--- 150 Ok to send data.
+Loaded 120 CAs
+Loaded 0 CRLs
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+---- Closing data socket
+<--- 226 Transfer complete.
+---> SITE UTIME 20260907221513 index.html
+<--- 500 Unknown SITE command.
+---> SITE UTIME index.html 20260907221513 20260907221513 20260907221513 UTC
+<--- 500 Unknown SITE command.
+---> MKD assets
+Making directory `assets'
+<--- 257 "/srv/dpl/web/dist/assets" created
+---- CWD path to be sent is `/srv/dpl/web/dist/assets'
+---> CWD /srv/dpl/web/dist/assets
+<--- 250 Directory successfully changed.
+---> TYPE A
+<--- 200 Switching to ASCII mode.
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,143).
+---- Connecting data socket to (172.18.0.2) port 40079
+---- Data connection established
+---> LIST
+<--- 150 Here comes the directory listing.
+Loaded 120 CAs
+Loaded 0 CRLs
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+---- Got EOF on data connection
+---- Closing data socket
+<--- 226 Directory send OK.
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,117).
+---- Connecting data socket to (172.18.0.2) port 40053
+---- Data connection established
+---> NLST
+<--- 150 Here comes the directory listing.
+Loaded 120 CAs
+Loaded 0 CRLs
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+---- Got EOF on data connection
+---- Closing data socket
+<--- 226 Directory send OK.
+---> TYPE I
+Transferring file `assets/dpl-app.js'
+<--- 200 Switching to Binary mode.
+---> PASV
+<--- 227 Entering Passive Mode (172,18,0,2,156,83).
+---- Connecting data socket to (172.18.0.2) port 40019
+---- Data connection established
+---> STOR dpl-app.js
+<--- 150 Ok to send data.
+Loaded 120 CAs
+Loaded 0 CRLs
+WARNING: Certificate verification: The certificate is NOT trusted. The certificate issuer is unknown.  (98:A3:E3:32:82:8F:57:79:AB:FA:1F:B5:65:A5:33:F4:F9:64:6C:F1)
+---- Closing data socket
+<--- 226 Transfer complete.
+---> SITE CHMOD 644 ./dpl-app.js
+<--- 200 SITE CHMOD command ok.
+---- CWD path to be sent is `/srv/dpl/web/dist'
+---> CWD /srv/dpl/web/dist
+<--- 250 Directory successfully changed.
+---> SITE CHMOD 644 ./index.html
+<--- 200 SITE CHMOD command ok.
+---> SITE CHMOD 755 ./assets
+<--- 200 SITE CHMOD command ok.
+---> QUIT
+<--- 221 Goodbye.
+---- Closing control socket
+$ docker exec dpl-lab ls -lR /srv/dpl/web/dist
+/srv/dpl/web/dist:
+total 8
+drwxr-xr-x 2 despliegue despliegue 4096 Nov  2 18:11 assets
+-rw-r--r-- 1 despliegue despliegue  735 Nov  2 18:11 index.html
+
+/srv/dpl/web/dist/assets:
+total 4
+-rw-r--r-- 1 despliegue despliegue 2535 Nov  2 18:11 dpl-app.js

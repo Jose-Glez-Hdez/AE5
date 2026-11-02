@@ -3,3 +3,11 @@ drwxr-x--- 2 despliegue operaciones 4096 Nov  2 15:15 /srv/dpl/web
 
 $ docker exec dpl-lab ls -l /srv/dpl/web
 total 0
+
+$ docker exec dpl-lab ls -ld /srv/dpl/web
+drwxr-x--- 3 despliegue operaciones 4096 Nov  2 18:11 /srv/dpl/web
+
+$ docker exec dpl-lab ls -l /srv/dpl/web
+total 8
+drwxr-xr-x 3 despliegue despliegue 4096 Nov  2 18:11 dist
+-rw-r--r-- 1 despliegue despliegue   24 Nov  2 17:24 prueba.txt

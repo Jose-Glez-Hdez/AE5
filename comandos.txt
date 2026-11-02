@@ -54,3 +54,8 @@ docker exec dpl-cliente lftp -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1
 docker exec dpl-cliente lftp -u anonymous, $IP_DPL_LAB -e "set net:max-retries 1; set net:reconnect-interval-base 1; set ssl:verify-certificate no; ls; exit"
 docker exec dpl-cliente lftp -d -e "debug 3; set ftp:passive-mode off; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit"
 docker exec dpl-cliente lftp -d -e "debug 3; set ftp:passive-mode on; set ssl:verify-certificate no; open -u despliegue,$PASS_DESP $IP_DPL_LAB; cd /srv/dpl/web; ls; exit"
+docker cp dist dpl-cliente:/tmp/dist
+docker exec dpl-cliente lftp -u despliegue,$PASS_DESP $IP_DPL_LAB -d -e "set ssl:verify-certificate no; mirror -R --verbose /tmp/dist /srv/dpl/web/dist; exit"
+docker exec dpl-lab ls -ld /srv/dpl/web
+docker exec dpl-lab ls -l /srv/dpl/web
+docker exec dpl-lab ls -lR /srv/dpl/web/dist
