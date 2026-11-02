@@ -442,3 +442,17 @@ despliegue@172.18.0.2's password:
 Number of key(s) added: 1
 $ docker exec dpl-lab ls -l /home/despliegue/.ssh/authorized_keys
 -rw------- 1 despliegue despliegue 98 Nov  2 18:32 /home/despliegue/.ssh/authorized_keys
+docker exec dpl-lab ls -l /srv/dpl/web
+total 12
+drwxr-xr-x 3 despliegue despliegue 4096 Nov  2 18:11 dist
+-rw-r--r-- 1 despliegue despliegue   24 Nov  2 18:45 prueba-scp.txt
+-rw-r--r-- 1 despliegue despliegue   24 Nov  2 17:24 prueba.txt
+docker exec dpl-cliente bash -c "printf 'put /tmp/prueba.txt\nls -l\n' > /tmp/sftp-batch.txt"
+docker exec dpl-cliente sftp -b /tmp/sftp-batch.txt despliegue@$IP_DPL_LAB
+
+sftp> put /tmp/prueba.txt
+sftp> ls -l
+-rw-r--r--    ? despliegue despliegue       24 Nov  2 18:45 prueba.txt
+docker exec dpl-cliente ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password despliegue@$IP_DPL_LAB true
+
+despliegue@172.18.0.2: Permission denied (publickey).

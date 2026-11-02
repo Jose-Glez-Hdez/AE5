@@ -875,21 +875,39 @@ passwordauthentication no
 kbdinteractiveauthentication no
 ```
 
+### Transferencias con clave y rechazo de contraseña
 
+#### scp
 
+```
+$ docker exec dpl-cliente scp /tmp/prueba.txt despliegue@$IP_DPL_LAB:/srv/dpl/web/prueba-scp.txt
+$ docker exec dpl-lab ls -l /srv/dpl/web
+total 12
+drwxr-xr-x 3 despliegue despliegue 4096 Nov  2 18:11 dist
+-rw-r--r-- 1 despliegue despliegue   24 Nov  2 18:45 prueba-scp.txt
+-rw-r--r-- 1 despliegue despliegue   24 Nov  2 17:24 prueba.txt
+```
 
+#### sftp (batch)
 
+```
+$ docker exec dpl-cliente sftp -b /tmp/sftp-batch.txt despliegue@$IP_DPL_LAB
+sftp> put /tmp/prueba.txt
+sftp> ls -l
+-rw-r--r--    ? despliegue despliegue       24 Nov  2 18:45 prueba.txt
+```
 
+#### Intento con contraseña — denegado
 
+```
+$ docker exec dpl-cliente ssh -o PubkeyAuthentication=no -o PreferredAuthentications=password despliegue@$IP_DPL_LAB true
+despliegue@172.18.0.2: Permission denied (publickey).
+```
 
+`scp` y `sftp` funcionan **sin pedir contraseña** (clave pública) y el acceso por
+contraseña queda rechazado: el servidor solo ofrece el método `publickey`.
 
-
-
-
-
-
-
-## 13. Problemas encontrados y solución
+## 12. Problemas encontrados y solución
 
 ### Problema 1 — lftp sin respuesta en las pruebas FTP
 
