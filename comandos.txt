@@ -18,3 +18,10 @@ docker exec dpl-lab bash -c "dpkg -l openssh-server | tail -1"
 docker exec dpl-cliente bash -c "lftp --version | head -1"
 docker exec dpl-cliente bash -c "curl --version | head -1"
 docker exec dpl-cliente ssh -V
+docker exec dpl-lab groupadd operaciones
+docker exec dpl-lab useradd -m -s /bin/bash -G operaciones despliegue
+docker exec dpl-lab useradd -m -s /bin/bash -G operaciones lector
+docker exec dpl-lab bash -c "echo 'despliegue:$PASS_DESP' | chpasswd"
+docker exec dpl-lab bash -c "echo 'lector:$PASS_LECT' | chpasswd"
+docker exec dpl-lab grep -E 'despliegue|lector' /etc/passwd
+docker exec dpl-lab groups despliegue lector

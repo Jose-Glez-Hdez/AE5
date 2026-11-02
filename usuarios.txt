@@ -1,0 +1,11 @@
+$ docker exec dpl-lab grep -E 'despliegue|lector' /etc/passwd
+docker exec dpl-lab groups despliegue lector
+
+despliegue:x:1001:1002::/home/despliegue:/bin/bash
+lector:x:1002:1003::/home/lector:/bin/bash
+despliegue : despliegue operaciones
+lector : lector operaciones
+
+$ docker exec dpl-lab groups despliegue lector
+despliegue : despliegue operaciones
+lector : lector operaciones

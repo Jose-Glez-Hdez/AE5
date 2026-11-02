@@ -83,3 +83,36 @@ curl 8.5.0 (aarch64-unknown-linux-gnu) libcurl/8.5.0 OpenSSL/3.0.13 zlib/1.3 bro
 $ docker exec dpl-cliente ssh -V
 OpenSSH_9.6p1 Ubuntu-3ubuntu13.20, OpenSSL 3.0.13 30 Jan 2024
 ```
+
+## 3. Usuarios, grupo y permisos
+
+### Usuarios y grupo
+
+Se crea el grupo común `operaciones` y dos usuarios que pertenecen a él:
+`despliegue` (escritura) y `lector` (solo lectura). Se les da shell `/bin/bash`
+porque vsftpd rechaza usuarios cuya shell no aparece en `/etc/shells`.
+Las contraseñas se asignan con `chpasswd` a partir de variables, para no escribirlas aquí.
+
+```bash
+docker exec dpl-lab groupadd operaciones
+docker exec dpl-lab useradd -m -s /bin/bash -G operaciones despliegue
+docker exec dpl-lab useradd -m -s /bin/bash -G operaciones lector
+docker exec dpl-lab bash -c "echo 'despliegue:$PASS_DESP' | chpasswd"
+docker exec dpl-lab bash -c "echo 'lector:$PASS_LECT' | chpasswd"
+```
+
+Resultado:
+
+```
+$ docker exec dpl-lab grep -E 'despliegue|lector' /etc/passwd
+docker exec dpl-lab groups despliegue lector
+
+despliegue:x:1001:1002::/home/despliegue:/bin/bash
+lector:x:1002:1003::/home/lector:/bin/bash
+despliegue : despliegue operaciones
+lector : lector operaciones
+
+$ docker exec dpl-lab groups despliegue lector
+despliegue : despliegue operaciones
+lector : lector operaciones
+```
